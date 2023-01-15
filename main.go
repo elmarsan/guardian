@@ -31,7 +31,6 @@ func main() {
 	r.HandleFunc("/login", postLoginHandler.ServeHTTP).Methods("POST")
 	r.PathPrefix("/").Handler(middlewares.Auth(http.FileServer(http.Dir("./static"))))
 
-	log.Print("Guardian listening on :8080...")
 	s := &http.Server{
 		Handler:      r,
 		Addr:         ":8000",
@@ -41,6 +40,8 @@ func main() {
 
 	// start server
 	go func() {
+		log.Print("Guardian listening on :8080...")
+
 		err = s.ListenAndServe()
 		if err != nil {
 			log.Fatal(err)

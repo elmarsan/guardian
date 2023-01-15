@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/elmarsan/guardian/handlers"
@@ -11,6 +12,11 @@ import (
 )
 
 func main() {
+	_, ok := os.LookupEnv("JWT_KEY")
+	if !ok {
+		log.Fatal("Missing JWT_KEY environment variable")
+	}
+
 	r := mux.NewRouter()
 	r.HandleFunc("/login", handlers.GetLogin).Methods("GET")
 	r.HandleFunc("/login", handlers.PostLogin).Methods("POST")

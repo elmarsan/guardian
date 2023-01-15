@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -11,13 +10,8 @@ import (
 )
 
 // jwtSecretKey reads secret used for signing jwt tokens.
-// If it's missing, program will ends.
 func jwtSecretKey() []byte {
-	jwtKey, ok := os.LookupEnv("JWT_KEY")
-	if !ok {
-		log.Fatal("Missing JWT_KEY environment variable")
-	}
-
+	jwtKey, _ := os.LookupEnv("JWT_KEY")
 	return []byte(jwtKey)
 }
 
@@ -32,7 +26,7 @@ func jwtExpirationTime() time.Time {
 		// Ignore parsing errors, in fail case take use time
 		parsedMins, _ := strconv.Atoi(expTime)
 		if parsedMins > 0 {
-			mins = 60
+			mins = parsedMins
 		}
 	}
 

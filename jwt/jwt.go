@@ -25,9 +25,7 @@ func jwtExpirationTime() time.Time {
 	if ok {
 		// Ignore parsing errors, in fail case take use time
 		parsedMins, _ := strconv.Atoi(expTime)
-		if parsedMins > 0 {
-			mins = parsedMins
-		}
+		mins = parsedMins
 	}
 
 	return t.Add(time.Duration(mins) * time.Minute)

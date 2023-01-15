@@ -2,7 +2,13 @@
 <html>
 <head>
     <title>Login</title>
-    <style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+    <style type="text/css">
+        * {
+            box-sizing: border-box;
+        }
+
         html, body {
             margin: 0;
             padding: 0;
@@ -14,42 +20,79 @@
             flex-flow: row;
             align-items: center;
             justify-content: center;
+            font-family: 'Open Sans', serif;
+            color: white;
         }
 
-        * {
-            box-sizing: border-box;
+        h2 {
+            font-family: 'Montserrat', serif;
         }
 
-        div {
+        .container {
             width: 100%;
             height: 100%;
             display: flex;
-            flex-flow: row;
+            flex-flow: column;
             align-items: center;
             justify-content: center;
 
-            padding: 40px;
-            width: 300px;
-            height: 300px;
+            width: 400px;
+            height: 380px;
             background: rgba(0,0,0,.5);
             box-shadow: 0 15px 25px rgba(0,0,0,.6);
-            border-radius: 10px;
+            border-radius: .4rem;
         }
 
-        label {
+        form {
+            width: 100%;
+            display: flex;
+            flex-flow: column;
+            align-items: center;
+        }
+
+        .form-field {
+            display: flex;
+            flex-flow: column;
+            margin-bottom: 1.4rem;
+            width: 80%;
+        }
+
+        .form-field label {
+            font-weight: bold;
+            margin-bottom: .2rem;
+        }
+
+        .form-field input[type="text"], input[type="password"] {
+            padding: .6rem;
+        }
+
+        input[type="submit"] {
+            padding: .6rem;
+            background: #2e8bc0;
+            border-color: #2e8bc0;
+            border-radius: 50px;
+            width: 170px;
+            margin-top: .2rem;
+            font-weight: bold;
             color: white;
+            font-size: 15px;
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
-    <div>
+    <div class="container">
+        <h2>Guardian</h2>
         <form action="/login" method="post">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            <br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <br><br>
+            <div class="form-field">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
             <input type="submit" value="Login">
         </form>
     </div>

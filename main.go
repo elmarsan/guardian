@@ -25,10 +25,13 @@ func main() {
 
 	postLoginHandler := handlers.NewPostLogin(userRepo)
 	getLoginHandler := handlers.NewGetLogin()
+	getFilesHandler := handlers.NewGetFiles("./static")
 
 	r := mux.NewRouter()
 	r.HandleFunc("/login", getLoginHandler.ServeHTTP).Methods("GET")
 	r.HandleFunc("/login", postLoginHandler.ServeHTTP).Methods("POST")
+	r.HandleFunc("/files", getFilesHandler.ServeHTTP).Methods("GET")
+
 	r.PathPrefix("/").Handler(middlewares.Auth(http.FileServer(http.Dir("./static"))))
 
 	s := &http.Server{

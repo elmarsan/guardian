@@ -20,7 +20,7 @@ func NewPostLogin(ur repository.UserRepository) *PostLogin {
 	}
 }
 
-// PostLogin handles login process.
+// ServeHTTP handles login process.
 func (pl *PostLogin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 

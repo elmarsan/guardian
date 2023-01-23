@@ -15,6 +15,6 @@ func NewGetLogin() *GetLogin {
 
 // ServeHTTP returns login page.
 func (gl *GetLogin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("./templates/login.html"))
+	tmpl := template.Must(template.ParseFiles("./templates/login.tmpl"))
 	tmpl.Execute(w, "")
 }

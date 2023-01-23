@@ -1,6 +1,10 @@
 <h1>Files</h1>
 <ul>
     {{range .}}
-        <li>{{.}}</li>
+        <li>
+            <form method="get" action="/files/download/{{.Name}}">
+                <button type="submit">{{.Name}}</button>
+            </form>
+        </li>
     {{end}}
 </ul>

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/elmarsan/guardian/handlers"
-	"github.com/elmarsan/guardian/middlewares"
 	"github.com/elmarsan/guardian/repository"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -23,16 +23,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	r := mux.NewRouter()
+	base, _ := os.LookupEnv("BASE_PATH")
+
 	postLoginHandler := handlers.NewPostLogin(userRepo)
 	getLoginHandler := handlers.NewGetLogin()
-	getFilesHandler := handlers.NewGetFiles("./static")
+	getFilesHandler := handlers.NewServeFiles(base)
+	downloadFilesHandler := handlers.NewDownloadFiles(r, base)
 
-	r := mux.NewRouter()
 	r.HandleFunc("/login", getLoginHandler.ServeHTTP).Methods("GET")
 	r.HandleFunc("/login", postLoginHandler.ServeHTTP).Methods("POST")
 	r.HandleFunc("/files", getFilesHandler.ServeHTTP).Methods("GET")
-
-	r.PathPrefix("/").Handler(middlewares.Auth(http.FileServer(http.Dir("./static"))))
+	r.HandleFunc("/files/download/{path}", downloadFilesHandler.ServeHTTP).Methods("GET")
 
 	s := &http.Server{
 		Handler:      r,
@@ -43,9 +45,9 @@ func main() {
 
 	// start server
 	go func() {
-		log.Print("Guardian listening on :8080...")
+		log.Print("Guardian listening on :8000...")
 
-		err = s.ListenAndServe()
+		err := s.ListenAndServe()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -66,13 +68,20 @@ func main() {
 }
 
 func checkEnv() {
-	_, ok := os.LookupEnv("JWT_KEY")
-	if !ok {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	if _, ok := os.LookupEnv("JWT_KEY"); !ok {
 		log.Fatal("Missing JWT_KEY env")
 	}
 
-	_, ok = os.LookupEnv("DATABASE_URL")
-	if !ok {
+	if _, ok := os.LookupEnv("DATABASE_URL"); !ok {
 		log.Fatal("Missing DATABASE_URL env")
+	}
+
+	if _, ok := os.LookupEnv("BASE_PATH"); !ok {
+		log.Fatal("Missing BASE_PATH env")
 	}
 }

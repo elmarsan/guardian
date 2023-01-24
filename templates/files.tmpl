@@ -2,7 +2,7 @@
 <ul>
     {{range .}}
         <li>
-            <form method="get" action="/files/download/{{.Name}}">
+            <form method="get" action="/files/download/{{.Path}}">
                 <button type="submit">{{.Name}}</button>
             </form>
         </li>

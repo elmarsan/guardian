@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/elmarsan/guardian/handlers"
+	"github.com/elmarsan/guardian/middlewares"
 	"github.com/elmarsan/guardian/repository"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -16,9 +17,11 @@ import (
 )
 
 func main() {
-	checkEnv()
+	l := log.New(os.Stdout, "Guardian ", log.LstdFlags)
 
-	userRepo, err := repository.NewSqliteUserRepository()
+	checkEnv(l)
+
+	userRepo, err := repository.NewSqliteUserRepository(l)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,15 +29,19 @@ func main() {
 	r := mux.NewRouter()
 	base, _ := os.LookupEnv("BASE_PATH")
 
-	postLoginHandler := handlers.NewPostLogin(userRepo)
-	getLoginHandler := handlers.NewGetLogin()
-	getFilesHandler := handlers.NewServeFiles(base)
-	downloadFilesHandler := handlers.NewDownloadFiles(r, base)
+	// Auth handlers
+	postLogin := handlers.NewPostLogin(l, "/login", userRepo)
+	getLogin := handlers.NewGetLogin(l, "/login")
 
-	r.HandleFunc("/login", getLoginHandler.ServeHTTP).Methods("GET")
-	r.HandleFunc("/login", postLoginHandler.ServeHTTP).Methods("POST")
-	r.HandleFunc("/files", getFilesHandler.ServeHTTP).Methods("GET")
-	r.HandleFunc("/files/download/{path}", downloadFilesHandler.ServeHTTP).Methods("GET")
+	// File handlers
+	getFiles := handlers.NewServeFiles(l, "/files", base)
+	getDownloadFile := handlers.NewGetDownloadFile(l, "/files/download/{path}")
+
+	// Attach handler to router
+	r.Handle(getLogin.Path, getLogin).Methods("GET")
+	r.Handle(postLogin.Path, postLogin).Methods("POST")
+	r.Handle(getFiles.Path, middlewares.Auth(getFiles)).Methods("GET")
+	r.PathPrefix(getDownloadFile.Path).Handler(middlewares.Auth(getDownloadFile)).Methods("GET")
 
 	s := &http.Server{
 		Handler:      r,
@@ -43,9 +50,9 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	// start server
+	// Start server
 	go func() {
-		log.Print("Guardian listening on :8000...")
+		l.Println("Listening on :8000...")
 
 		err := s.ListenAndServe()
 		if err != nil {
@@ -53,35 +60,35 @@ func main() {
 		}
 	}()
 
-	// trap sigterm or interupt and gracefully shutdown the server
+	// Trap sigterm or interupt and gracefully shutdown the server
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	signal.Notify(c, os.Kill)
 
 	// Block until a signal is received.
 	sig := <-c
-	log.Println("Got signal:", sig)
+	l.Println("Got signal:", sig)
 
-	// gracefully shutdown the server, waiting max 30 seconds for current operations to complete
+	// Gracefully shutdown the server, waiting max 30 seconds for current operations to complete
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	s.Shutdown(ctx)
 }
 
-func checkEnv() {
+func checkEnv(l *log.Logger) {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		l.Fatal("Error loading .env file")
 	}
 
 	if _, ok := os.LookupEnv("JWT_KEY"); !ok {
-		log.Fatal("Missing JWT_KEY env")
+		l.Fatal("Missing JWT_KEY env")
 	}
 
 	if _, ok := os.LookupEnv("DATABASE_URL"); !ok {
-		log.Fatal("Missing DATABASE_URL env")
+		l.Fatal("Missing DATABASE_URL env")
 	}
 
 	if _, ok := os.LookupEnv("BASE_PATH"); !ok {
-		log.Fatal("Missing BASE_PATH env")
+		l.Fatal("Missing BASE_PATH env")
 	}
 }

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/elmarsan/guardian/jwt"
@@ -10,18 +11,24 @@ import (
 
 // PostLogin represents POST HTTP method handler.
 type PostLogin struct {
-	ur repository.UserRepository
+	l    *log.Logger
+	Path string
+	ur   repository.UserRepository
 }
 
 // NewPostLogin returns PostLogin http handler.
-func NewPostLogin(ur repository.UserRepository) *PostLogin {
+func NewPostLogin(l *log.Logger, path string, ur repository.UserRepository) *PostLogin {
 	return &PostLogin{
-		ur: ur,
+		l:    l,
+		Path: path,
+		ur:   ur,
 	}
 }
 
 // ServeHTTP handles login process.
-func (pl *PostLogin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *PostLogin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.l.Printf("%s - PostLogin", h.Path)
+
 	r.ParseForm()
 
 	// Validate form data
@@ -36,7 +43,7 @@ func (pl *PostLogin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user exist
-	err = pl.ur.ValidateCredentials(creds.Username, creds.Password)
+	err = h.ur.ValidateCredentials(creds.Username, creds.Password)
 	if err != nil {
 		if err.Error() == repository.InvalidCredentialsErr {
 			w.WriteHeader(http.StatusNotFound)
@@ -88,6 +95,6 @@ func NewLoginCredentials(username, password string) (*LoginCredentials, error) {
 
 // fsRedirect function redirects to files page.
 func fsRedirect(w http.ResponseWriter, r *http.Request) {
-	loginHandler := http.RedirectHandler("/", http.StatusFound)
+	loginHandler := http.RedirectHandler("/files", http.StatusFound)
 	loginHandler.ServeHTTP(w, r)
 }

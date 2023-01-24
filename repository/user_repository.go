@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -16,10 +17,11 @@ type UserRepository interface {
 // SqliteUserRepository implements UserRepository using sqlite.
 type SqliteUserRepository struct {
 	db *sql.DB
+	l  *log.Logger
 }
 
 // NewSqliteUserRepository returns SqliteUserRepository instance.
-func NewSqliteUserRepository() (*SqliteUserRepository, error) {
+func NewSqliteUserRepository(l *log.Logger) (*SqliteUserRepository, error) {
 	url := os.Getenv("DATABASE_URL")
 	db, err := sql.Open("sqlite3", url)
 	if err != nil {
@@ -28,6 +30,7 @@ func NewSqliteUserRepository() (*SqliteUserRepository, error) {
 
 	return &SqliteUserRepository{
 		db: db,
+		l:  l,
 	}, nil
 }
 
@@ -40,15 +43,21 @@ const InvalidCredentialsErr = "Invalid credentials"
 
 // ValidateCredentials validates user credentials using sqlite database.
 func (ur *SqliteUserRepository) ValidateCredentials(user string, hash string) error {
+	ur.l.Printf("Validating user credentials %s, %s", user, hash)
+
 	rows, err := ur.db.Query("SELECT id FROM user WHERE name = ? AND password_hash = ?", user, hash)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	defer rows.Close()
 
 	if !rows.Next() {
+		ur.l.Printf("Invalid credentials %s, %s", user, hash)
 		return fmt.Errorf(InvalidCredentialsErr)
 	}
+
+	ur.l.Printf("Valid credentials %s, %s", user, hash)
 
 	return nil
 }

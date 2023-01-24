@@ -9,7 +9,7 @@ create table role(
     name varcharchar not null
 );
 
-CREATE TABLE user_roles(
+create table user_roles(
     user_role_id integer not null primary key autoincrement,
     user_id integer not null,
     role_id integer not null,

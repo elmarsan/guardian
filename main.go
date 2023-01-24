@@ -31,10 +31,10 @@ func main() {
 
 	// Auth handlers
 	postLogin := handlers.NewPostLogin(l, "/login", userRepo)
-	getLogin := handlers.NewGetLogin(l, "/login")
+	getLogin := handlers.NewGetLogin(l, "/login", "./templates/login.tmpl")
 
 	// File handlers
-	getFiles := handlers.NewGetFiles(l, "/files", base)
+	getFiles := handlers.NewGetFiles(l, "/files", base, "./templates/files.tmpl")
 	getDownloadFile := handlers.NewGetDownloadFile(l, "/files/download/{path}")
 
 	// Attach handler to router

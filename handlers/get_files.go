@@ -13,14 +13,16 @@ type GetFiles struct {
 	l          *log.Logger
 	Path       string
 	staticPath string
+	tmpl       string
 }
 
 // NewGetFiles returns GetFiles http handler.
-func NewGetFiles(l *log.Logger, path string, staticPath string) *GetFiles {
+func NewGetFiles(l *log.Logger, path string, staticPath string, tmpl string) *GetFiles {
 	return &GetFiles{
 		l:          l,
 		Path:       path,
 		staticPath: staticPath,
+		tmpl:       tmpl,
 	}
 }
 
@@ -59,6 +61,6 @@ func (h *GetFiles) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := template.Must(template.ParseFiles("./templates/files.tmpl"))
+	tmpl := template.Must(template.ParseFiles(h.tmpl))
 	tmpl.Execute(w, files)
 }

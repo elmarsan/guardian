@@ -10,13 +10,15 @@ import (
 type GetLogin struct {
 	l    *log.Logger
 	Path string
+	tmpl string
 }
 
 // NewGetLogin returns GetLogin handler.
-func NewGetLogin(l *log.Logger, path string) *GetLogin {
+func NewGetLogin(l *log.Logger, path string, tmpl string) *GetLogin {
 	return &GetLogin{
 		l:    l,
 		Path: path,
+		tmpl: tmpl,
 	}
 }
 
@@ -24,6 +26,6 @@ func NewGetLogin(l *log.Logger, path string) *GetLogin {
 func (h *GetLogin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.l.Printf("%s - GetLogin", h.Path)
 
-	tmpl := template.Must(template.ParseFiles("./templates/login.tmpl"))
+	tmpl := template.Must(template.ParseFiles(h.tmpl))
 	tmpl.Execute(w, "")
 }

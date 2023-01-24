@@ -3,61 +3,36 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 	"text/template"
+
+	"github.com/elmarsan/guardian/files"
 )
 
 // GetFiles represents GET HTTP method handler for serving files.
 type GetFiles struct {
-	l          *log.Logger
-	Path       string
-	staticPath string
-	tmpl       string
+	l       *log.Logger
+	Path    string
+	tmpl    string
+	storage files.Storage
 }
 
 // NewGetFiles returns GetFiles http handler.
-func NewGetFiles(l *log.Logger, path string, staticPath string, tmpl string) *GetFiles {
+func NewGetFiles(l *log.Logger, path string, tmpl string, storage files.Storage) *GetFiles {
 	return &GetFiles{
-		l:          l,
-		Path:       path,
-		staticPath: staticPath,
-		tmpl:       tmpl,
+		l:       l,
+		Path:    path,
+		tmpl:    tmpl,
+		storage: storage,
 	}
-}
-
-// ServerFile represents file stored in server.
-type ServerFile struct {
-	Path string
-	Name string
 }
 
 // ServeHTTP handles file serving.
 func (h *GetFiles) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.l.Printf("%s - GetFiles", h.Path)
 
-	files := []ServerFile{}
-
-	err := filepath.Walk(h.staticPath, func(path string, f os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !f.IsDir() {
-			f := ServerFile{
-				Path: path,
-				Name: f.Name(),
-			}
-
-			files = append(files, f)
-		}
-
-		return nil
-	})
-
+	files, err := h.storage.GetAllInfo()
 	if err != nil {
-		h.l.Printf("ERROR: Static path not found %s", h.staticPath)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 

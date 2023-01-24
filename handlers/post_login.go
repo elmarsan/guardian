@@ -5,19 +5,19 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/elmarsan/guardian/auth"
 	"github.com/elmarsan/guardian/jwt"
-	"github.com/elmarsan/guardian/repository"
 )
 
 // PostLogin represents POST HTTP method handler.
 type PostLogin struct {
 	l    *log.Logger
 	Path string
-	ur   repository.UserRepository
+	ur   auth.UserRepository
 }
 
 // NewPostLogin returns PostLogin http handler.
-func NewPostLogin(l *log.Logger, path string, ur repository.UserRepository) *PostLogin {
+func NewPostLogin(l *log.Logger, path string, ur auth.UserRepository) *PostLogin {
 	return &PostLogin{
 		l:    l,
 		Path: path,
@@ -45,7 +45,7 @@ func (h *PostLogin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Check if user exist
 	err = h.ur.ValidateCredentials(creds.Username, creds.Password)
 	if err != nil {
-		if err.Error() == repository.InvalidCredentialsErr {
+		if err.Error() == auth.InvalidCredentialsErr {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte(err.Error()))
 			return

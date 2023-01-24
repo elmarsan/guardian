@@ -8,9 +8,10 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/elmarsan/guardian/auth"
+	"github.com/elmarsan/guardian/files"
 	"github.com/elmarsan/guardian/handlers"
 	"github.com/elmarsan/guardian/middlewares"
-	"github.com/elmarsan/guardian/repository"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
@@ -21,7 +22,7 @@ func main() {
 
 	checkEnv(l)
 
-	userRepo, err := repository.NewSqliteUserRepository(l)
+	userRepo, err := auth.NewSqliteUserRepository(l)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,19 +30,28 @@ func main() {
 	r := mux.NewRouter()
 	base, _ := os.LookupEnv("BASE_PATH")
 
+	storage, err := files.NewLocalStorage(base)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Auth handlers
 	postLogin := handlers.NewPostLogin(l, "/login", userRepo)
 	getLogin := handlers.NewGetLogin(l, "/login", "./templates/login.tmpl")
 
 	// File handlers
-	getFiles := handlers.NewGetFiles(l, "/files", base, "./templates/files.tmpl")
-	getDownloadFile := handlers.NewGetDownloadFile(l, "/files/download/{path}")
+	getFiles := handlers.NewGetFiles(l, "/files", "./templates/files.tmpl", storage)
+	getDownloadFile := handlers.NewGetDownloadFile(l, "/files/download/{path}", storage)
+	postUploadFile := handlers.NewPostUploadFile(l, "/files/upload/{filename}", storage)
 
 	// Attach handler to router
 	r.Handle(getLogin.Path, getLogin).Methods("GET")
 	r.Handle(postLogin.Path, postLogin).Methods("POST")
+	r.Handle(postUploadFile.Path, postUploadFile).Methods("POST")
+
 	r.Handle(getFiles.Path, middlewares.Auth(getFiles)).Methods("GET")
 	r.PathPrefix(getDownloadFile.Path).Handler(middlewares.Auth(getDownloadFile)).Methods("GET")
+	r.Handle(postUploadFile.Path, postUploadFile).Methods("POST")
 
 	s := &http.Server{
 		Handler:      r,

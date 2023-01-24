@@ -15,8 +15,8 @@ type GetFiles struct {
 	staticPath string
 }
 
-// NewServeFiles returns GetFiles http handler.
-func NewServeFiles(l *log.Logger, path string, staticPath string) *GetFiles {
+// NewGetFiles returns GetFiles http handler.
+func NewGetFiles(l *log.Logger, path string, staticPath string) *GetFiles {
 	return &GetFiles{
 		l:          l,
 		Path:       path,
@@ -24,6 +24,7 @@ func NewServeFiles(l *log.Logger, path string, staticPath string) *GetFiles {
 	}
 }
 
+// ServerFile represents file stored in server.
 type ServerFile struct {
 	Path string
 	Name string
@@ -35,7 +36,11 @@ func (h *GetFiles) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	files := []ServerFile{}
 
-	filepath.Walk(h.staticPath, func(path string, f os.FileInfo, _ error) error {
+	err := filepath.Walk(h.staticPath, func(path string, f os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if !f.IsDir() {
 			f := ServerFile{
 				Path: path,
@@ -47,6 +52,12 @@ func (h *GetFiles) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		return nil
 	})
+
+	if err != nil {
+		h.l.Printf("ERROR: Static path not found %s", h.staticPath)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	tmpl := template.Must(template.ParseFiles("./templates/files.tmpl"))
 	tmpl.Execute(w, files)

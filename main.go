@@ -34,7 +34,7 @@ func main() {
 	getLogin := handlers.NewGetLogin(l, "/login")
 
 	// File handlers
-	getFiles := handlers.NewServeFiles(l, "/files", base)
+	getFiles := handlers.NewGetFiles(l, "/files", base)
 	getDownloadFile := handlers.NewGetDownloadFile(l, "/files/download/{path}")
 
 	// Attach handler to router

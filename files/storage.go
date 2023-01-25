@@ -1,9 +1,26 @@
 package files
 
-import "io"
+import (
+	"io"
+	"mime"
+	"os"
+	"path"
+)
 
-// FileInfo represents file server information containing abs path and name.
-type FileInfo struct {
+// Storage defines file operations.
+type Storage interface {
+	// Save creates file in fpath from r.
+	Save(fpath string, f io.Reader) error
+
+	// GetAllInfo return all StorageFiles.
+	GetAllInfo() (*[]StorageFile, error)
+
+	// Write writes StorageFile into given w.
+	Write(fpath string, w io.Writer) (*StorageFile, error)
+}
+
+// StorageFile represents file located in Storage.
+type StorageFile struct {
 	Path string
 	Name string
 	Mime string
@@ -11,14 +28,21 @@ type FileInfo struct {
 	ETag string
 }
 
-// Storage defines file operations.
-type Storage interface {
-	// Save creates file in fpath from r.
-	Save(fpath string, f io.Reader) error
+// NewStorageFile creates StorageFile from file descriptor f.
+func NewStorageFile(f *os.File) (*StorageFile, error) {
+	// Figure out Content-type header from file extension
+	ext := path.Ext(f.Name())
+	mime := mime.TypeByExtension(ext)
 
-	// GetAllInfo return all files contained in the storage.
-	GetAllInfo() (*[]FileInfo, error)
+	stat, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
 
-	// Write writes file contained in fpath into given w.
-	Write(fpath string, w io.Writer) (*FileInfo, error)
+	return &StorageFile{
+		Name: f.Name(),
+		Mime: mime,
+		Path: f.Name(),
+		Size: stat.Size(),
+	}, nil
 }

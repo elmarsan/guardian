@@ -8,11 +8,11 @@ import (
 	"testing"
 )
 
-func TestGetFiles(t *testing.T) {
+func TestFiles(t *testing.T) {
 	l := log.Default()
 
 	t.Run("should return http status ok with file.tmpl", func(t *testing.T) {
-		handler := NewGetFiles(l, "/files", "static", "../templates/files.tmpl")
+		handler := NewFiles(l, "/files", "static", "../templates/files.tmpl")
 
 		// Create folder that serves files
 		os.Mkdir("static", 0777)
@@ -27,7 +27,7 @@ func TestGetFiles(t *testing.T) {
 	})
 
 	t.Run("should return http internal server error when static path does not exist", func(t *testing.T) {
-		handler := NewGetFiles(l, "/files", "non-existing-static-path", "../templates/files.tmpl")
+		handler := NewFiles(l, "/files", "non-existing-static-path", "../templates/files.tmpl")
 
 		req := httptest.NewRequest("GET", handler.Path, nil)
 		rec := httptest.NewRecorder()

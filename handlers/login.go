@@ -2,33 +2,26 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/elmarsan/guardian/auth"
 	"github.com/elmarsan/guardian/jwt"
 )
 
-// PostLogin represents POST HTTP method handler.
-type PostLogin struct {
-	l    *log.Logger
-	Path string
-	ur   auth.UserRepository
+// Login represents http handler for authentication.
+type Login struct {
+	ur auth.UserRepository
 }
 
-// NewPostLogin returns PostLogin http handler.
-func NewPostLogin(l *log.Logger, path string, ur auth.UserRepository) *PostLogin {
-	return &PostLogin{
-		l:    l,
-		Path: path,
-		ur:   ur,
+// NewLogin returns Login http handler.
+func NewLogin(ur auth.UserRepository) *Login {
+	return &Login{
+		ur: ur,
 	}
 }
 
-// ServeHTTP handles login process.
-func (h *PostLogin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.l.Printf("%s - PostLogin", h.Path)
-
+// ServeHTTP handles authentication.
+func (h *Login) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	// Validate form data

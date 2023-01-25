@@ -18,40 +18,43 @@ import (
 )
 
 func main() {
-	l := log.New(os.Stdout, "Guardian ", log.LstdFlags)
+	l := log.Default()
 
 	checkEnv(l)
 
+	// Create sqlite user repository
 	userRepo, err := auth.NewSqliteUserRepository(l)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	r := mux.NewRouter()
 	base, _ := os.LookupEnv("BASE_PATH")
 
+	// Create local storage
 	storage, err := files.NewLocalStorage(base)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Router
+	r := mux.NewRouter()
+	r.Use(middlewares.Log, middlewares.Auth)
+
 	// Auth handlers
-	postLogin := handlers.NewPostLogin(l, "/login", userRepo)
-	getLogin := handlers.NewGetLogin(l, "/login", "./templates/login.tmpl")
+	login := handlers.NewLogin(userRepo)
+	loginTmpl := handlers.NewLoginTmpl("./templates/login.tmpl")
 
-	// File handlers
-	getFiles := handlers.NewGetFiles(l, "/files", "./templates/files.tmpl", storage)
-	getDownloadFile := handlers.NewGetDownloadFile(l, "/files/download/{path}", storage)
-	postUploadFile := handlers.NewPostUploadFile(l, "/files/upload/{filename}", storage)
+	r.Handle("/login", loginTmpl).Methods("GET")
+	r.Handle("/login", login).Methods("POST")
 
-	// Attach handler to router
-	r.Handle(getLogin.Path, getLogin).Methods("GET")
-	r.Handle(postLogin.Path, postLogin).Methods("POST")
-	r.Handle(postUploadFile.Path, postUploadFile).Methods("POST")
+	// File  handlers
+	files := handlers.NewFiles(storage, "./templates/files.tmpl")
+	downloadFile := handlers.NewDownloadFile(storage)
+	uploadFile := handlers.NewUploadFile(storage)
 
-	r.Handle(getFiles.Path, middlewares.Auth(getFiles)).Methods("GET")
-	r.PathPrefix(getDownloadFile.Path).Handler(middlewares.Auth(getDownloadFile)).Methods("GET")
-	r.Handle(postUploadFile.Path, postUploadFile).Methods("POST")
+	r.Handle("/files", files).Methods("GET")
+	r.PathPrefix("/files/download/{path}").Handler(downloadFile).Methods("GET")
+	r.Handle("/files/upload/{filename}", uploadFile).Methods("POST")
 
 	s := &http.Server{
 		Handler:      r,
@@ -85,8 +88,7 @@ func main() {
 }
 
 func checkEnv(l *log.Logger) {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		l.Fatal("Error loading .env file")
 	}
 

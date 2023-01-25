@@ -7,11 +7,11 @@ import (
 	"testing"
 )
 
-func TestGetDownloadFile(t *testing.T) {
+func TestFileDownload(t *testing.T) {
 	l := log.Default()
 
 	t.Run("should download file", func(t *testing.T) {
-		handler := NewGetDownloadFile(l, "/files/download/{path}")
+		handler := NewDownloadFile(l, "/files/download/{path}")
 
 		req := httptest.NewRequest("GET", "/files/download/../test_files/file.txt", nil)
 		rec := httptest.NewRecorder()
@@ -27,7 +27,7 @@ func TestGetDownloadFile(t *testing.T) {
 	})
 
 	t.Run("should return not found when file does not exist", func(t *testing.T) {
-		handler := NewGetDownloadFile(l, "/files/download/{path}")
+		handler := NewDownloadFile(l, "/files/download/{path}")
 
 		req := httptest.NewRequest("GET", "/files/download/../test_files/test.txt", nil)
 		rec := httptest.NewRecorder()

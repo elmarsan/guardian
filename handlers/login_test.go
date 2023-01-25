@@ -26,7 +26,7 @@ func TestLoginTest(t *testing.T) {
 			err: nil,
 		}
 
-		handler := NewPostLogin(l, "/login", ur)
+		handler := NewLogin(l, "/login", ur)
 
 		form := url.Values{}
 		form.Add("username", "ana")
@@ -47,7 +47,7 @@ func TestLoginTest(t *testing.T) {
 			err: fmt.Errorf("Invalid credentials"),
 		}
 
-		handler := NewPostLogin(l, "/login", ur)
+		handler := NewLogin(l, "/login", ur)
 
 		form := url.Values{}
 		form.Add("username", "ana")
@@ -68,7 +68,7 @@ func TestLoginTest(t *testing.T) {
 			err: nil,
 		}
 
-		handler := NewPostLogin(l, "/login", ur)
+		handler := NewLogin(l, "/login", ur)
 
 		form := url.Values{}
 		form.Add("username", "ana")

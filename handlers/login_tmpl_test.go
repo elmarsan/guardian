@@ -11,7 +11,7 @@ func TestGetLogin(t *testing.T) {
 	l := log.Default()
 
 	t.Run("should return http status ok with login.tmpl", func(t *testing.T) {
-		handler := NewGetLogin(l, "/login", "../templates/login.tmpl")
+		handler := NewLoginTmpl(l, "/login", "../templates/login.tmpl")
 
 		req := httptest.NewRequest("GET", handler.Path, nil)
 		rec := httptest.NewRecorder()

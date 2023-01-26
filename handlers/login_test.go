@@ -2,13 +2,26 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 )
+
+func TestGetLogin(t *testing.T) {
+	t.Run("should return http status ok ", func(t *testing.T) {
+		handler := NewLoginTmpl("../templates/login.tmpl")
+
+		req := httptest.NewRequest("GET", "/login", nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		if rec.Result().StatusCode != http.StatusOK {
+			t.Errorf("StatusCode should be 200")
+		}
+	})
+}
 
 type userMockRepository struct {
 	err error
@@ -18,21 +31,19 @@ func (ur *userMockRepository) ValidateCredentials(user string, hash string) erro
 	return ur.err
 }
 
-func TestLoginTest(t *testing.T) {
-	l := log.Default()
-
-	t.Run("should login when credentials are valid and redirec to file path", func(t *testing.T) {
+func TestPostLogin(t *testing.T) {
+	t.Run("should login with valid credentials and redirect to file path", func(t *testing.T) {
 		ur := &userMockRepository{
 			err: nil,
 		}
 
-		handler := NewLogin(l, "/login", ur)
+		handler := NewLogin(ur)
 
 		form := url.Values{}
 		form.Add("username", "ana")
 		form.Add("password", "secret_hash")
 
-		req := httptest.NewRequest("POST", handler.Path, strings.NewReader(form.Encode()))
+		req := httptest.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
@@ -47,13 +58,13 @@ func TestLoginTest(t *testing.T) {
 			err: fmt.Errorf("Invalid credentials"),
 		}
 
-		handler := NewLogin(l, "/login", ur)
+		handler := NewLogin(ur)
 
 		form := url.Values{}
 		form.Add("username", "ana")
 		form.Add("password", "secret_hash")
 
-		req := httptest.NewRequest("POST", handler.Path, strings.NewReader(form.Encode()))
+		req := httptest.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
@@ -68,13 +79,13 @@ func TestLoginTest(t *testing.T) {
 			err: nil,
 		}
 
-		handler := NewLogin(l, "/login", ur)
+		handler := NewLogin(ur)
 
 		form := url.Values{}
 		form.Add("username", "ana")
 		form.Add("password", "")
 
-		req := httptest.NewRequest("POST", handler.Path, strings.NewReader(form.Encode()))
+		req := httptest.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)

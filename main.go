@@ -18,12 +18,10 @@ import (
 )
 
 func main() {
-	l := log.Default()
-
-	checkEnv(l)
+	checkEnv()
 
 	// Create sqlite user repository
-	userRepo, err := auth.NewSqliteUserRepository(l)
+	userRepo, err := auth.NewSqliteUserRepository()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,14 +29,11 @@ func main() {
 	base, _ := os.LookupEnv("BASE_PATH")
 
 	// Create local storage
-	storage, err := files.NewLocalStorage(base)
-	if err != nil {
-		log.Fatal(err)
-	}
+	storage := files.NewLocalStorage(base)
 
 	// Router
 	r := mux.NewRouter()
-	r.Use(middlewares.Log, middlewares.Auth)
+	r.Use(middlewares.Log)
 
 	// Auth handlers
 	login := handlers.NewLogin(userRepo)
@@ -52,9 +47,9 @@ func main() {
 	downloadFile := handlers.NewDownloadFile(storage)
 	uploadFile := handlers.NewUploadFile(storage)
 
-	r.Handle("/files", files).Methods("GET")
-	r.PathPrefix("/files/download/{path}").Handler(downloadFile).Methods("GET")
-	r.Handle("/files/upload/{filename}", uploadFile).Methods("POST")
+	r.Handle("/files", middlewares.Auth(files)).Methods("GET")
+	r.PathPrefix("/files/download/{path}").Handler(middlewares.Auth(downloadFile)).Methods("GET")
+	r.Handle("/files/upload/{filename}", middlewares.Auth(uploadFile)).Methods("POST")
 
 	s := &http.Server{
 		Handler:      r,
@@ -65,7 +60,7 @@ func main() {
 
 	// Start server
 	go func() {
-		l.Println("Listening on :8000...")
+		log.Println("Listening on :8000...")
 
 		err := s.ListenAndServe()
 		if err != nil {
@@ -80,27 +75,27 @@ func main() {
 
 	// Block until a signal is received.
 	sig := <-c
-	l.Println("Got signal:", sig)
+	log.Println("Got signal:", sig)
 
 	// Gracefully shutdown the server, waiting max 30 seconds for current operations to complete
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	s.Shutdown(ctx)
 }
 
-func checkEnv(l *log.Logger) {
+func checkEnv() {
 	if err := godotenv.Load(); err != nil {
-		l.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file")
 	}
 
 	if _, ok := os.LookupEnv("JWT_KEY"); !ok {
-		l.Fatal("Missing JWT_KEY env")
+		log.Fatal("Missing JWT_KEY env")
 	}
 
 	if _, ok := os.LookupEnv("DATABASE_URL"); !ok {
-		l.Fatal("Missing DATABASE_URL env")
+		log.Fatal("Missing DATABASE_URL env")
 	}
 
 	if _, ok := os.LookupEnv("BASE_PATH"); !ok {
-		l.Fatal("Missing BASE_PATH env")
+		log.Fatal("Missing BASE_PATH env")
 	}
 }

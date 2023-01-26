@@ -46,3 +46,5 @@ func NewStorageFile(f *os.File) (*StorageFile, error) {
 		Size: stat.Size(),
 	}, nil
 }
+
+const FileNotFoundErr = "File not found"

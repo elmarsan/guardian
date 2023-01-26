@@ -27,9 +27,13 @@ func (h *DownloadFile) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fpath := r.URL.Path[len("/files/download/"):]
 
 	b := bytes.NewBuffer([]byte{})
-
 	finfo, err := h.storage.Write(fpath, b)
 	if err != nil {
+		if err.Error() == files.FileNotFoundErr {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}

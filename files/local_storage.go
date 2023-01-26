@@ -11,14 +11,14 @@ import (
 
 // LocalStorage implements Storage using disk.
 type LocalStorage struct {
-	basePath string
+	path string
 }
 
 // NewLocalStorage returns Storage implementation using disk.
-func NewLocalStorage(basePath string) (*LocalStorage, error) {
+func NewLocalStorage(p string) *LocalStorage {
 	return &LocalStorage{
-		basePath: basePath,
-	}, nil
+		path: p,
+	}
 }
 
 // Save saves new file in path with content contained in r.
@@ -62,13 +62,10 @@ func (l *LocalStorage) Save(fpath string, r io.Reader) error {
 
 // Write writes file contained in path into given w.
 func (l *LocalStorage) Write(fpath string, w io.Writer) (*StorageFile, error) {
-	// fp := l.fullPath(fpath)
-	fp := fpath
-
 	// open the file
-	f, err := os.Open(fp)
+	f, err := os.Open(fpath)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to open file: %w", err)
+		return nil, fmt.Errorf("%s", FileNotFoundErr)
 	}
 	defer f.Close()
 
@@ -85,7 +82,7 @@ func (l *LocalStorage) Write(fpath string, w io.Writer) (*StorageFile, error) {
 	return &StorageFile{
 		Name: f.Name(),
 		Mime: mime,
-		Path: fp,
+		Path: fpath,
 		Size: s,
 	}, nil
 }
@@ -95,7 +92,7 @@ func (l *LocalStorage) GetAllInfo() (*[]StorageFile, error) {
 	files := []StorageFile{}
 
 	// Walk through base path and get all files.
-	err := filepath.Walk(l.basePath, func(path string, f os.FileInfo, err error) error {
+	err := filepath.Walk(l.path, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -121,5 +118,5 @@ func (l *LocalStorage) GetAllInfo() (*[]StorageFile, error) {
 
 // fullPath returns the absolute path
 func (l *LocalStorage) fullPath(path string) string {
-	return filepath.Join(l.basePath, path)
+	return filepath.Join(l.path, path)
 }

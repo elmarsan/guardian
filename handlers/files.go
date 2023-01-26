@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"text/template"
 
@@ -25,6 +26,7 @@ func NewFiles(storage files.Storage, tmpl string) *Files {
 func (h *Files) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	files, err := h.storage.GetAllInfo()
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}

@@ -15,3 +15,8 @@ Http file server protected by jwt written in Go.
 | `JWT_KEY` | YES | Secret for signing jww tokens | `ef51c9fc4b73b74149f8dd0a0ee5e9aaf605a1cb` |
 | `JWT_EXPIRATION_TIME` | NO | Time in minutes for expire jwt policy | `60` |
 | `DATABASE_URL` | YES | Sqlite database url | `./test.db` |
+
+### Demo and screenshots
+
+<img src="./doc/guardian-login.png" alt="login" width="950" height="700"/>
+

@@ -20,3 +20,4 @@ Http file server protected by jwt written in Go.
 
 <img src="./doc/guardian-login.png" alt="login" width="950" height="700"/>
 
+[Screencast 2023-01-28 10:20:42.webm](https://user-images.githubusercontent.com/43180519/215258178-bab542a8-03dd-4229-b0d8-6423274cf506.webm)
